@@ -1,25 +1,29 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./utils/supabase";
+import Form from "./forms/Form";
 
 export default function App() {
-  const [todos, setTodos] = useState([]);
+  const [dogs, setDogs] = useState([]);
+
+  async function getTodos() {
+    const { data: dogs } = await supabase.from("dogs").select();
+
+    if (dogs) {
+      setDogs(dogs);
+    }
+  }
 
   useEffect(() => {
-    async function getTodos() {
-      const { data: todos } = await supabase.from("dogs").select();
-
-      if (todos) {
-        setTodos(todos);
-      }
-    }
-
     getTodos();
   }, []);
 
   return (
     <ul>
-      {todos.map((todo) => (
-        <li key={todo.id}>{todo.breed}</li>
+      <Form onAddDog={getTodos} />
+      {dogs.map((dog) => (
+        <li key={dog.id}>
+          {dog.breed} {dog.sub_breed ? `- ${dog.sub_breed}` : ""}
+        </li>
       ))}
     </ul>
   );
