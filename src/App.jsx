@@ -14,12 +14,14 @@ export default function App() {
 
     if (error) {
       console.log("Fetch error:", error);
+      setLoading(false);
       return;
     }
 
     setDogs(data || []);
     setLoading(false);
   }
+  console.log(selectedDog, "SelectedDog");
 
   async function handleDelete(id) {
     const { error } = await supabase.from("dogs").delete().eq("id", id);

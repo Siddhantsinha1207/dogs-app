@@ -28,18 +28,36 @@ const Form = ({ onAddDog, selectedDog, setSelectedDog }) => {
   async function handleSubmit(e) {
     e.preventDefault();
 
+    if (!dogData.breed.trim()) return;
+
     const payload = {
       breed: dogData.breed,
       sub_breed: dogData.subBreed || null,
     };
 
+    let error = null;
+
     if (selectedDog) {
-      await supabase.from("dogs").update(payload).eq("id", selectedDog.id);
+      const { data, error } = await supabase
+        .from("dogs")
+        .update(payload)
+        .eq("id", selectedDog.id)
+        .select();
+
+      console.log("update response:", { data, error });
     } else {
-      await supabase.from("dogs").insert([payload]);
+      const response = await supabase.from("dogs").insert([payload]);
+
+      error = response.error;
     }
 
-    onAddDog();
+    if (error) {
+      console.log(error);
+      return;
+    }
+
+    await onAddDog();
+
     setDogData(INIT_DATA);
     setSelectedDog(null);
   }
