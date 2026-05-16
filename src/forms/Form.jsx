@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-
+import { useEffect, useState } from "react";
 import { supabase } from "../utils/supabase";
 
 const INIT_DATA = {
@@ -7,8 +6,19 @@ const INIT_DATA = {
   subBreed: "",
 };
 
-const Form = ({ onAddDog }) => {
+const Form = ({ onAddDog, selectedDog, setSelectedDog }) => {
   const [dogData, setDogData] = useState(INIT_DATA);
+
+  useEffect(() => {
+    if (selectedDog) {
+      setDogData({
+        breed: selectedDog.breed || "",
+        subBreed: selectedDog.sub_breed || "",
+      });
+    } else {
+      setDogData(INIT_DATA);
+    }
+  }, [selectedDog]);
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -23,30 +33,48 @@ const Form = ({ onAddDog }) => {
       sub_breed: dogData.subBreed || null,
     };
 
-    await supabase.from("dogs").insert([payload]);
+    if (selectedDog) {
+      await supabase.from("dogs").update(payload).eq("id", selectedDog.id);
+    } else {
+      await supabase.from("dogs").insert([payload]);
+    }
 
     onAddDog();
-
     setDogData(INIT_DATA);
+    setSelectedDog(null);
   }
+
   return (
-    <form onSubmit={handleSubmit}>
-      <label htmlFor="breed">Dog Breed: </label>
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white p-5 rounded-xl shadow space-y-4"
+    >
+      <h2 className="text-lg font-semibold">
+        {selectedDog ? "Edit Dog" : "Add Dog"}
+      </h2>
+
       <input
-        type="text"
+        className="border rounded px-3 py-2 w-full"
         name="breed"
+        placeholder="Breed"
         value={dogData.breed}
         onChange={handleChange}
       />
-      <label htmlFor="subBreed">Sub Breed: </label>
+
       <input
-        type="text"
+        className="border rounded px-3 py-2 w-full"
         name="subBreed"
+        placeholder="Sub Breed"
         value={dogData.subBreed}
         onChange={handleChange}
       />
 
-      <button type="submit">Add Dog</button>
+      <button
+        type="submit"
+        className="w-full bg-green-500 text-white py-2 rounded cursor-pointer hover:bg-green-600"
+      >
+        {selectedDog ? "Update Dog" : "Add Dog"}
+      </button>
     </form>
   );
 };
